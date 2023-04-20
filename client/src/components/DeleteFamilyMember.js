@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axios, { Axios } from "axios";
 
 function DeleteFamilyMember() {
   const [familyMembers, setFamilyMembers] = useState([]);
@@ -14,6 +14,13 @@ function DeleteFamilyMember() {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
+  useEffect(() => {
+    axios.get("http://localhost:3002/family-members").then((res) => {
+      console.log(res.data.data);
+      setFamilyMembers(res.data.data);
+    });
+    console.log("family " + familyMembers);
+  }, []);
   const handleSubmit = (event) => {
     event.preventDefault();
     axios
@@ -46,7 +53,47 @@ function DeleteFamilyMember() {
       console.log(error);
     }
   };
-
+  const [editingId, setEditingId] = useState(null);
+  const handleEdit = (id) => {
+    setEditingId(id);
+  };
+  const handleSave = (id) => {
+    const updatedFamilyMember = familyMembers.find((fam) => fam.id === id);
+    axios
+      .put(`http://localhost:3002/family-members/${id}`, updatedFamilyMember)
+      .then((response) => {
+        // Update the state with the updated family member data
+        const updatedFamilyMembers = familyMembers.map((fam) => {
+          if (fam.id === id) {
+            return response.data;
+          } else {
+            return fam;
+          }
+        });
+        setFamilyMembers(updatedFamilyMembers);
+        setEditingId(null);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const handleInputChange = (id, field, value) => {
+    // Update the corresponding family member object in the state
+    const updatedFamilyMembers = familyMembers.map((fam) => {
+      if (fam.id === id) {
+        return {
+          ...fam,
+          [field]: value,
+        };
+      } else {
+        return fam;
+      }
+    });
+    setFamilyMembers(updatedFamilyMembers);
+  };
+  const handleCancel = () => {
+    setEditingId(null);
+  };
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -97,16 +144,93 @@ function DeleteFamilyMember() {
         <tbody>
           {familyMembers.map((member) => (
             <tr key={member.id}>
-              <td>{member.name}</td>
-              <td>{member.age}</td>
-              <td>{member.gender}</td>
-              <td>{member.relationship}</td>
               <td>
-                <button onClick={() => handleDelete(member.id)}>Delete</button>
+                {editingId === member.id ? (
+                  <input
+                    type="text"
+                    value={member.name}
+                    onChange={(e) =>
+                      handleInputChange(member.id, "name", e.target.value)
+                    }
+                  />
+                ) : (
+                  member.name
+                )}
               </td>
+
               <td>
-                <button onClick={() => handleUpdate(member.id)}>Update</button>
+                {editingId === member.id ? (
+                  <input
+                    type="text"
+                    value={member.age}
+                    onChange={(e) =>
+                      handleInputChange(member.id, "age", e.target.value)
+                    }
+                  />
+                ) : (
+                  member.age
+                )}
               </td>
+
+              <td>
+                {editingId === member.id ? (
+                  <input
+                    type="text"
+                    value={member.gender}
+                    onChange={(e) =>
+                      handleInputChange(member.id, "gender", e.target.value)
+                    }
+                  />
+                ) : (
+                  member.gender
+                )}
+              </td>
+
+              <td>
+                {editingId === member.id ? (
+                  <input
+                    type="text"
+                    value={member.relationship}
+                    onChange={(e) =>
+                      handleInputChange(
+                        member.id,
+                        "relationship",
+                        e.target.value
+                      )
+                    }
+                  />
+                ) : (
+                  member.relationship
+                )}
+              </td>
+
+              {editingId !== member.id ? (
+                <tr>
+                  <td>
+                    <button onClick={() => handleDelete(member.id)}>
+                      Delete
+                    </button>
+                  </td>
+                  <td>
+                    <button onClick={() => handleEdit(member.id)}>
+                      Update
+                    </button>
+                  </td>{" "}
+                </tr>
+              ) : (
+                <tr>
+                  <td>
+                    <button onClick={() => handleCancel(member.id)}>
+                      Cancel
+                    </button>
+                  </td>
+                  <td>
+                    <button onClick={() => handleSave(member.id)}>
+                      Confirm
+                    </button>
+                  </td>{" "}
+                </tr>
+              )}
             </tr>
           ))}
         </tbody>

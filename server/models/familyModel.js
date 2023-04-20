@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../configuration/db");
 
-const FamilyMember = sequelize.define("family-member", {
+const FamilyMember = sequelize.define("familymembers", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -22,6 +22,12 @@ const FamilyMember = sequelize.define("family-member", {
   relationship: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  createdAt: {
+    timestamps: false, // disable timestamps
+  },
+  updatedAt: {
+    timestamps: false, // disable timestamps
   },
 });
 
